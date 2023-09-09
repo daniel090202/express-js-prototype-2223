@@ -1,0 +1,21 @@
+<div class="mt-4">
+    <div class="row">
+        <div class="col-sm-6 col-lg-4">
+
+            {{#each posts ~}}
+            <div class="card mt-4" style="width: 18rem;">
+                <a href="/posts/{{this.slug}}" class="">
+                    <img src={{this.image}} class="card-img-top" alt="Post's Image">
+                </a>
+                <div class="card-body">
+                    <a href="/posts/{{this.slug}}">
+                        <h5 class="card-title">{{this.title}}</h5>
+                    </a>
+                    <p class="card-text">{{this.author}}</p>
+                    <a href="#" class="btn btn-primary">View post</a>
+                </div>
+            </div>
+            {{~/each}}
+        </div>
+    </div>
+</div>

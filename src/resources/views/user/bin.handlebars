@@ -1,0 +1,102 @@
+<div class="mt-4">
+    <div>
+        <h3 class="">Your deleting history</h3>
+    </div>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Deleted at</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each posts}}
+            <tr>
+                {{!-- Function Helpers supports the calculation on HTML DOMS --}}
+                <th scope="row">{{sum @index 1}}</th>
+                <td>{{this.title}}</td>
+                <td>{{this.author}}</td>
+                <td>{{this.deletedAt}}</td>
+                <td>
+                    <a href="" class="btn btn-link btn-restore" data-bs-id="{{this._id}}">Restore</a>
+                </td>
+                <td>
+                    <a href="" class="btn btn-link" data-bs-id="{{this._id}}" data-bs-toggle="modal"
+                        data-bs-target="#delete-posts">
+                        Remove
+                    </a>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="5" class="text-center">
+                    <span>Your bin is empty</span>
+                    <a href="/user/stored/posts" class="">Share your feelings now !!!</a>
+                </td>
+            </tr>
+
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+
+{{!-- Delete Confirmation --}}
+
+<div id="delete-posts" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btn-delete-post">Remove from all devices</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Restore</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Delete Hidden Form --}}
+<form name="delete-post-form" method="POST"></form>
+<form name="restore-post-form" method="POST"></form>
+
+<script>
+    // When DOM already loaded => JQuery Library is loaded.
+    document.addEventListener("DOMContentLoaded", () => {
+        const btnDeletePost = document.getElementById('btn-delete-post');
+        const deletePost = document.getElementById('delete-posts');
+        const deletePostForm = document.forms['delete-post-form'];
+        const restorePostForm = document.forms['restore-post-form'];
+        const btnRestores = $('.btn-restore');
+
+        let postId = undefined;
+
+        deletePost.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            postId = button.getAttribute('data-bs-id');
+        });
+
+        btnDeletePost.addEventListener('click', () => {
+            deletePostForm.action = '/posts/' + postId + '/force?_method=DELETE';
+            deletePostForm.submit();
+        })
+
+        btnRestores.click(function (event) {
+            event.preventDefault();
+
+            const postId = $(this).data('bs-id');
+
+            restorePostForm.action = '/posts/' + postId + '/restore?_method=PATCH';
+            restorePostForm.submit();
+        })
+    })
+</script>

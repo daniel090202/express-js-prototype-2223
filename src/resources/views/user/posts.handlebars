@@ -1,0 +1,167 @@
+<form class="mt-4" name="container-form" method="POST" action="/posts/handle-form-action">
+    <div>
+        <h3 class="">My posts</h3>
+        {{#if deletedCount}}
+        <a href="/user/bin/posts" class="">Your delete history ({{deletedCount}})</a>
+        {{/if}}
+        {{!-- Create the select all and action options --}}
+        <div class="mt-4 d-flex align-items-center">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="checkbox-select-all">
+                <label class="form-check-label" for="checkbox-select-all">Select all</label>
+            </div>
+
+            <div>
+                <select class="form-select form-select-sm checkbox-select-all-options"
+                    aria-label="Default select example" name="action" required>
+                    <option value="" selected>-- Select actions --</option>
+                    <option value="delete">Delete</option>
+                    <option value="edit">Edit</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary btn-sm btn-check-all" disabled="disabled">Forward</button>
+        </div>
+
+    </div>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col">
+                    <span>Title</span>
+                    {{{sortable 'title' _sort}}}
+                </th>
+                <th scope="col">
+                    <span>Author</span>
+                    {{{sortable 'author' _sort}}}
+                </th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each posts}}
+            <tr>
+                <th>
+                    <div class="form-check">
+                        {{!-- In case of selecting multiple checkbox: attribute name must added [] to indicate the
+                        array. --}}
+                        <input type="checkbox" class="form-check-input" name="postIDs[]" value="{{this._id}}">
+                    </div>
+                </th>
+                {{!-- Function Helpers supports the calculation on HTML DOMS --}}
+                <th scope="row">{{sum @index 1}}</th>
+                <td>{{this.title}}</td>
+                <td>{{this.author}}</td>
+                <td>
+                    <a href="/posts/{{this._id}}/edit" class="btn btn-link">Edit</a>
+                </td>
+                <td>
+                    <a href="" class="btn btn-link" data-bs-id="{{this._id}}" data-bs-toggle="modal"
+                        data-bs-target="#delete-posts">
+                        Remove
+                    </a>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="5" class="text-center">
+                    <span>You have not posted anything yet.</span>
+                    <a href="/posts/create" class="">Share your feelings now !!!</a>
+                </td>
+            </tr>
+
+            {{/each}}
+        </tbody>
+    </table>
+</form>
+
+
+{{!-- Delete Confirmation --}}
+
+<div id="delete-posts" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btn-delete-post">Remove post</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Delete Hidden Form --}}
+<form name="delete-post-form" method="POST">
+
+</form>
+
+<script>
+    // When DOM already loaded => JQuery Library is loaded.
+    document.addEventListener("DOMContentLoaded", () => {
+        const btnDeletePost = document.getElementById('btn-delete-post');
+        const deletePost = document.getElementById('delete-posts');
+
+        const deletePostForm = document.forms['delete-post-form'];
+        const containerForm = $('form[name="container-form"]');
+
+        const checkBoxSelectAll = $('#checkbox-select-all');
+        const postsCheckbox = $('input[name="postIDs[]"]');
+        const checkAllButton = $('.btn-check-all');
+
+        let postId = undefined;
+
+        // When users click the remove buttons.
+        deletePost.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            postId = button.getAttribute('data-bs-id');
+        });
+
+        btnDeletePost.addEventListener('click', () => {
+            deletePostForm.action = '/posts/' + postId + '?_method=DELETE';
+            deletePostForm.submit();
+        })
+
+        // When users interact with (click, un-click) the select-all button.
+        checkBoxSelectAll.change(function () {
+            const isCheckedAll = $(this).prop('checked');
+            postsCheckbox.prop('checked', isCheckedAll);
+        });
+
+        // Select-all checkbox actions.
+        postsCheckbox.change(function () {
+            // Compare the number of posts' checkboxes with the number of checked checkboxes.
+            const isCheckedAll = postsCheckbox.length === $('input[name="postIDs[]"]:checked').length;
+            checkBoxSelectAll.prop('checked', isCheckedAll);
+            renderCheckAllButton();
+        });
+
+        // Container form actions.
+        containerForm.on('submit', function (event) {
+            const isSubmittable = !checkAllButton.hasClass('disabled');
+
+            if (!isSubmittable) {
+                e.preventDefault();
+            }
+        })
+
+        // Re-rendering the select-all button (disabled <--> enabled).
+        function renderCheckAllButton() {
+            const checkedCount = $('input[name="postIDs[]"]:checked').length;
+            if (checkedCount > 0) {
+                checkAllButton.removeAttr('disabled', false);
+            } else {
+                checkAllButton.addAttr('disabled', true);
+            }
+        }
+    });
+
+</script>
